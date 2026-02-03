@@ -116,6 +116,54 @@ O runner utiliza:
 * Execução de jobs em containers
 * Labels compatíveis com `ubuntu-latest`
 
+## **Exemplo para workflow via gitea Actions**
+
+```yml
+name: React CI-CD Professional
+run-name: CI/CD disparado por ${{ gitea.actor }} 
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repositório (HTTP)
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+        run: |
+          echo "Clonando repositório..."
+          # aqui é o link do repo
+
+          git clone http://oauth2:${GITEA_TOKEN}@10.0.2.2:3000/lucas/testeci-cd.git .
+          git checkout main
+
+      - name: Debug workspace
+        run: |
+          echo "PWD:"
+          pwd
+          echo "FILES:"
+          ls -la
+          echo "PACKAGE.JSON:"
+          cat package.json
+
+      - name: Instalar Dependências
+        run: npm install
+
+      - name: Executar Testes
+        run: CI=true npm test -- --watchAll=false
+
+      - name: Gerar Build
+        run: npm run build
+
+      - name: Finalizar
+        run: echo "CI/CD executado com sucesso"
+
+```
 ### **Exemplo de labels configuradas:**
 
 `GITEA_RUNNER_LABELS=ubuntu-latest:docker://node:18-bullseye`

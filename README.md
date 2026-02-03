@@ -49,7 +49,7 @@ O objetivo é fornecer uma stack local que simula um ambiente real de CI/CD, per
 
 ---
 
-## **sPré-requisitos**
+## **Pré-requisitos**
 
 Na máquina host:
 

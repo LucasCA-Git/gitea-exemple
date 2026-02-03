@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: gitea-postgres
+    restart: always
+    networks:
+      - gitea_net
+    environment:
+      POSTGRES_USER: gitea
+      POSTGRES_PASSWORD: gitea
+      POSTGRES_DB: gitea
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - gitea_net
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      GITEA__database__DB_TYPE: postgres
+      GITEA__database__HOST: postgres:5432
+      GITEA__database__NAME: gitea
+      GITEA__database__USER: gitea
+      GITEA__database__PASSWD: gitea
+      GITEA__server__DISABLE_SSH: "true"
+      GITEA__actions__ENABLED: "true"
+      # Ajustado para o nome do serviço no Docker para o Runner alcançar
+      GITEA__server__ROOT_URL: http://gitea:3000
+    volumes:
+      - gitea_data:/data
+    ports:
+      - "3000:3000"
+
+  runner:
+    image: gitea/act_runner:latest
+    container_name: gitea-runner
+    restart: always
+    privileged: true
+    depends_on:
+      - gitea
+    networks:
+      - gitea_net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - runner_data:/data
+    environment:
+      - GITEA_INSTANCE_URL=http://gitea:3000
+      - GITEA_RUNNER_REGISTRATION_TOKEN=4IyJxoTxEJzc3CzK9IKuE7EpPiZghoMoQ8LMLUqO
+      - GITEA_RUNNER_NAME=meu-runner-estudo
+      # Mapeando o ubuntu-latest para uma imagem Node que já possui Git instalado
+      - GITEA_RUNNER_LABELS=ubuntu-latest:docker://node:18-bullseye
+
+volumes:
+  postgres_data:
+  gitea_data:
+  runner_data:
+
+networks:
+  gitea_net:
+    driver: bridge
